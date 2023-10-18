@@ -20,6 +20,7 @@ import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Textarea from '@mui/joy/Textarea';
+import Cookies from 'js-cookie';
 import {Button,Dialog, DialogTitle,DialogContent,DialogActions,} from '@mui/material';
 
 import Toolbar from '@mui/material/Toolbar';
@@ -89,7 +90,9 @@ const fabGreenStyle = {
   },
 };
 
-export default function FloatingActionButtonZoom() {
+export default function History() {
+
+  
   const theme = useTheme();
   const [value, setValue] = React.useState(0);
 
@@ -110,19 +113,19 @@ export default function FloatingActionButtonZoom() {
 
   const currencies = [
     {
-      value: 'c',
+      value: 'Casual Leave',
       label: 'Casual Leave',
     },
     {
-      value: 'p',
+      value: 'Privileged leave',
       label: 'Privileged leave',
     },
     {
-      value: 's',
+      value: 'Sick Leave',
       label: 'Sick Leave',
     },
     {
-      value: 'u',
+      value: 'Unpaid Leave',
       label: 'Unpaid Leave',
     },
   ];
@@ -145,6 +148,67 @@ export default function FloatingActionButtonZoom() {
   };
   const secondFileInputRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const [fromDate, setFromDate] = useState(null);
+  const [toDate, setToDate] = useState(null);
+  const [leavetype, setLeavetype] = useState('c');
+  const [reasonofleave, setReasonofleave] = useState('');
+  
+ const handleRequestLeave = async (e) => {
+  e.preventDefault();
+
+  try {
+    // Get the empid from the cookie
+    const empid = Cookies.get('empid');
+
+    // Create a new Date object for fromDate and toDate
+    const formattedFromDate = new Date(fromDate);
+    const formattedToDate = new Date(toDate);
+
+    // Format the dates to "YYYY-MM-DD"
+    formattedFromDate.setHours(0, 0, 0, 0); // Set time to midnight
+    formattedToDate.setHours(0, 0, 0, 0);
+
+    const requestData = {
+      fromdate: formattedFromDate.toISOString().split('T')[0], // Format fromDate
+      todate: formattedToDate.toISOString().split('T')[0], // Format toDate
+      leavetype: leavetype, // Pass the selected leavetype
+      reasonofleave: reasonofleave, // Pass the selected reasonofleave
+      empid: empid, // Pass the empid from the cookie
+    };
+    console.log('Request Data:', requestData);
+
+    // Define the API URL
+    const apiUrl = 'https://attendance-backend-five.vercel.app/leave/requestleave'; // Replace with the actual URL of your backend API
+
+    // Make the POST request
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+    console.log('Leave request created:', data.leaveRequest);
+
+    alert('Leave request created successfully');
+
+    // Handle the successful response, if needed
+    console.log('Leave request created:', data.leaveRequest);
+  } catch (error) {
+    // Handle errors, if any
+    console.error('Error creating leave request:', error);
+    alert('Error creating leave request. Please try again.' + error);
+  }
+};
+
+  
   return (
     <Box
       sx={{
@@ -158,15 +222,20 @@ export default function FloatingActionButtonZoom() {
     >
       <AppBar position="static" color="default" style={{ backgroundColor: '#424242', color:'white' }}>
       <Toolbar>
-        <IconButton
+      <button style={{ backgroundColor:'#424242' , border:'none' , color:'white'}}>
+            <a href='userdash'  >
+        <IconButton 
             size="large"
             edge="start"
             color="inherit"
             aria-label="menu"
             sx={{ mr: 2 }}
+            style={{ color: 'white' }}
           >
             <ArrowBackIcon />
           </IconButton>
+          </a>
+          </button>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           Khushi Sonani
           </Typography>
@@ -255,10 +324,12 @@ style={{ marginRight: '10px',marginLeft:'1px', fontSize: '12px', textAlign: 'cen
   <div style={{ marginTop: '20px', marginLeft: '1%', display: 'flex', alignItems: 'center' }}>
   <LocalizationProvider dateAdapter={AdapterDayjs}>
     <div style={{ marginRight: '10px' }}>
-      <DatePicker label="From Date" />
+      <DatePicker label="From Date"  value={fromDate}
+        onChange={(date) => setFromDate(date)}/>
     </div>
     <div>
-      <DatePicker label="To Date" />
+      <DatePicker label="To Date"  value={toDate}
+        onChange={(date) => setToDate(date)} />
     </div>
   </LocalizationProvider>
 </div>
@@ -275,7 +346,9 @@ style={{ marginRight: '10px',marginLeft:'1px', fontSize: '12px', textAlign: 'cen
           id="outlined-select-currency"
           select
           label="Select Leave"
-          defaultValue="c"
+          defaultValue="Casual Leave"
+          value={leavetype}
+          onChange={(e) => setLeavetype(e.target.value)}
           sx={{ minWidth: 310 }}
         >
           {currencies.map((option) => (
@@ -287,7 +360,8 @@ style={{ marginRight: '10px',marginLeft:'1px', fontSize: '12px', textAlign: 'cen
         </div>
         <div style={{ marginTop: '10px', marginLeft:'1%', marginBottom:'1px' }}>
         
-        <Textarea placeholder="Reason of leave (Optional)"  minRows={2}/>
+        <Textarea placeholder="Reason of leave (Optional)"value={reasonofleave}
+  onChange={(e) => setReasonofleave(e.target.value)}  minRows={2}/>
         <p  style={{ fontSize:'20px', color:'black', marginTop:'5px'}}><b>Add Image</b></p>
           <Button style={{marginTop:'0%', color:'black' , border:'solid black',height:'50px', width:'10px', fontSize:'10px'}} onClick={openPopup}>ADD<br/> FILE</Button>
           <Dialog open={isOpen} onClose={closePopup}>
@@ -332,7 +406,7 @@ style={{ marginRight: '10px',marginLeft:'1px', fontSize: '12px', textAlign: 'cen
       </Dialog>
           </div>
        
-          <Button style={{marginTop:'17%', color:'white' ,height:'50px', width:'100%', fontSize:'20px', backgroundColor:'#4f5cd7'}}>Request Leave</Button>
+          <Button style={{marginTop:'17%', color:'white' ,height:'50px', width:'100%', fontSize:'20px', backgroundColor:'#4f5cd7'}}   onClick={handleRequestLeave}>Request Leave</Button>
         
         
     </Box>

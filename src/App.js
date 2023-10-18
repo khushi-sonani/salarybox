@@ -15,6 +15,13 @@ import Punchin from './components/Punchin'
 import Attendance from './components/Attendance'
 import History from './components/History'
 import Document from './components/Document'
+import Userdash from './components/Userdash';
+import Notes from './components/Notes';
+import Chat from './components/Chat';
+import Fotter from './components/Fotter'
+import Holidaylist from './components/Holidaylist'
+import Profile1 from './components/Profile1';
+
 
 
 function App() {
@@ -35,6 +42,14 @@ function App() {
         <Route path="/attendance" element={<Attendance/>} />
         <Route path="/history" element={<History/>} />
         <Route path="/document" element={<Document/>} />
+        <Route path="/userdash" element={<Userdash/>} />
+        <Route path="/notes" element={<Notes/>} />
+        <Route path="/chat" element={<Chat/>} />
+        <Route path="/fotter" element={<Fotter/>} />
+        <Route path="/holidaylist" element={<Holidaylist/>} />
+        <Route path="/profile1" element={<Profile1/>} />
+        
+       
         
                 
       </Routes>

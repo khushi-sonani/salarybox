@@ -192,4 +192,24 @@
   .dropdown-item:hover {
     background-color: #e5e5e5;
   }
+  /* CSS in your attendance.css or a separate CSS file */
+.date-button {
+  background-color: #4f5cd7; /* Your desired background color */
+  color: white; /* Text color */
+  border: none;
+  border-radius: 50%; /* To make the date tiles circular */
+  width: 2em;
+  height: 2em;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Add hover effect if needed */
+.date-button:hover {
+  background-color: #1d2a6e; /* Change color on hover */
+}
+
   

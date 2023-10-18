@@ -53,7 +53,7 @@ class bank extends React.Component {
 
       try {
       
-        const response = await axios.post('http://localhost:5000/empbankdetail/bank', postData);
+        const response = await axios.post('https://attendance-backend-five.vercel.app/empbankdetail/bank', postData);
 
         // Handle the API response data here
         console.log('API Response:', response.data);

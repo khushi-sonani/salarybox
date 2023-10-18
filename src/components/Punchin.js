@@ -1,76 +1,187 @@
-import React, { useEffect, useRef } from 'react';
-import Webcam from 'react-webcam';
-import * as faceapi from 'face-api.js';
+import React, { useState, useEffect } from 'react';
+import Button from '@mui/material/Button';
+import { Box } from '@mui/material';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import { CardActionArea } from '@mui/material';
+import FingerprintIcon from '@mui/icons-material/Fingerprint';
+import ChatIcon from '@mui/icons-material/Chat';
+import { FaWhatsapp } from 'react-icons/fa';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import PersonIcon from '@mui/icons-material/Person';
+import moment from 'moment';
+import Cookies from 'js-cookie';
 
-const FaceScanner = () => {
-  const webcamRef = useRef(null);
+const iconStyle = {
+  color: 'black',
+};
 
+function Punchin() {
+  const [isPunchedIn, setIsPunchedIn] = useState(false);
+  const [punchInDate, setPunchInDate] = useState('');
+  const [punchInTime, setPunchInTime] = useState('');
+
+ 
   useEffect(() => {
-    const loadModels = async () => {
-      try {
-        // Load the SsdMobilenetv1 model for face detection
-        await faceapi.nets.ssdMobilenetv1.loadFromUri('/models');
-        
-        // Load other required models for face landmarks and recognition
-        await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-        await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-        
-        console.log('Models loaded successfully.');
-        
-        // Now that the models are loaded, set up the camera
-        setupCamera();
-      } catch (error) {
-        console.error('Error loading models:', error);
-      }
-    };
-
-    const setupCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (webcamRef.current) {
-          webcamRef.current.srcObject = stream;
-        }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-      }
-    };
-
-    loadModels();
+    // Move the retrieval of mobileNo to here so that it's retrieved once on component mount
+    const mobileNo = Cookies.get('mobileNo');
+    console.log('Mobile number retrieved from cookie:', mobileNo);
   }, []);
 
-  const captureImageAndRecognize = async () => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
 
-      // Perform facial recognition logic here using face-api.js
-      // For example:
-      const inputImage = new Image();
-      inputImage.src = imageSrc;
-      const detections = await faceapi.detectAllFaces(inputImage).withFaceLandmarks().withFaceDescriptors();
+  const handleClick = async () => {
+    try {
+      const now = new Date();
+      const formattedDateTime = moment(now).format('YYYY-MM-DD HH:mm:ss'); // Format the date and time using moment.js
+      const formattedDate = moment(now).format('YYYY-MM-DD'); // Extract the date
+      const formattedTime = moment(now).format('HH:mm:ss'); // Extract the time
 
-      // Determine if a face is detected and take action accordingly
-      if (detections.length > 0) {
-        console.log('Face detected.');
+      console.log('Date:', formattedDate);
+      console.log('Time:', formattedTime);
+
+      const mobileNo = Cookies.get('mobileNo');
+      const status = isPunchedIn ? 'Punch Out' : 'Punch In';
+
+      // Make a POST request to your server to store the date and time
+      const response = await fetch('https://attendance-backend-five.vercel.app/punching/attandance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ attendandanceDate: formattedDate, attendandanceTime: formattedTime, mobileNo, status }),
+      });
+
+      if (response.ok) {
+        setPunchInDate(formattedDate);
+        setPunchInTime(formattedTime);
+        alert(`Today's status: ${status}`);
       } else {
-        console.log('No face detected.');
+        console.error('Failed to store date and time');
       }
-    } else {
-      console.error('Camera not available.');
+
+      setIsPunchedIn((prevState) => !prevState);
+    } catch (error) {
+      console.error(error);
     }
+  };
+
+  const boxStyle = {
+    backgroundColor: 'black',
+    width: '328px',
+    marginTop: '110%',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  const buttonStyle = {
+    backgroundColor: '#ef5350',
+    width: '320px',
+    height: '50px',
+    color: 'white',
+    fontSize: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+  const iconStyle = {
+    fontSize: '36px',
   };
 
   return (
     <div>
-      <h1>Face Scanner</h1>
-      <input type="file" accept="image/*" capture="camera"/>
+      <Box sx={boxStyle}>
+        <Button style={buttonStyle} onClick={handleClick}>
+          {isPunchedIn ? 'Punch out' : 'Punch in'}
+        </Button>
+      </Box>
+      <a href='notes'>
+        <Button
+          style={{
+            backgroundColor: '#80deea',
+            textAlign: 'center',
+            width: '360px',
+            borderRadius: '0px',
+            height: '50px',
+            color: 'black',
+            fontSize: '15px',
+          }}
+        >
+          Check today's note
+        </Button>
+      </a>
+     
+      <div style={{ display: 'flex', flexDirection: 'row', marginTop: '0px', marginLeft: '0px' }}>
+        <Card sx={{ height: '120px', boxShadow: 'none', marginLeft: '10px', marginRight: '10px', width: '100px' }} className="card">
+          <CardActionArea>
+            <CardContent>
+              <div>
+                <FingerprintIcon style={iconStyle} />
+              </div>
+              <div>
+                <p style={{ fontSize: '12px', color: 'black' }}>
+                  Mark Attendance
+                </p>
+              </div>
+            </CardContent>
+          </CardActionArea>
+        </Card>
 
-      <Webcam
-        audio={false}
-        ref={webcamRef}
-      />
+        <Card sx={{ height: '120px', boxShadow: 'none', marginLeft: '10px', marginRight: '10px', width: '100px' }} className="card">
+          <a href='chat' style={{ textDecoration: 'none', color: 'black' }}>
+            <CardActionArea>
+              <CardContent>
+                <div>
+                  <ChatIcon style={iconStyle} />
+                </div>
+                <div>
+                  <p style={{ fontSize: '12px', color: 'black' }}>
+                    Chat
+                  </p>
+                </div>
+              </CardContent>
+            </CardActionArea>
+          </a>
+        </Card>
+
+        <Card sx={{ height: '120px', boxShadow: 'none', marginLeft: '10px', marginRight: '10px', width: '100px' }} className="card">
+          <CardActionArea>
+            <CardContent>
+              <div>
+                <FaWhatsapp style={iconStyle} />
+              </div>
+              <div>
+                <p style={{ fontSize: '12px', color: 'black' }}>
+                  Posters
+                </p>
+              </div>
+            </CardContent>
+          </CardActionArea>
+        </Card>
+
+        <a href='userdash' style={{ textDecoration: 'none' }}>
+          <Card sx={{ height: '120px', boxShadow: 'none', marginLeft: '10px', marginRight: '10px', width: '100px' }} className="card">
+            <CardActionArea>
+              <CardContent>
+                <div>
+                  <PersonIcon style={iconStyle} />
+                </div>
+                <div>
+                  <p style={{ fontSize: '12px', color: 'black' }}>
+                    Profile
+                  </p>
+                </div>
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        </a>
+      </div>
+    
      
     </div>
   );
-};
+}
 
-export default FaceScanner;
+export default Punchin;

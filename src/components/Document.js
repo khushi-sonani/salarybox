@@ -1,4 +1,4 @@
-import React, { useRef,useState } from 'react';
+import React, { useRef,useState,  useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from '@mui/material';
 import TextField from '@mui/material/TextField';
@@ -11,11 +11,13 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Box } from '@mui/material';
+import Cookies from 'js-cookie';
 
 function Document() {
-  
+  const [adddocument, setAddDocument] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isSecondPopupOpen, setIsSecondPopupOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const openPopup = () => {
     setIsOpen(true);
@@ -85,6 +87,7 @@ function Document() {
       label: 'Other',
     },
   ];
+  
   const handleButtonClick = () => {
     // Trigger the click event of the file input when the button is clicked
     fileInputRef.current.click();
@@ -93,28 +96,122 @@ function Document() {
     // Trigger the click event of the file input without capture
     secondFileInputRef.current.click();
   };
+
+
+  const handleFileSelection = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
+  };
   const secondFileInputRef = useRef(null);
   const fileInputRef = useRef(null);
+
+
+  const handleCreateDocument = () => {
+    // Assuming you have the document type in 'adddocument'
+    if (!adddocument) {
+      alert('Please select a document type before creating the document.');
+      return;
+    }
+
+    if (!selectedFile) {
+      alert('Please select a file before creating the document.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('adddocument', adddocument);
+    formData.append('file', selectedFile);
+
+    // Replace with your API endpoint
+    const apiUrl = 'https://attendance-backend-five.vercel.app/document/documents';
+
+    fetch(apiUrl, {
+      method: 'POST',
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('New document created:', data);
+        alert('Document created successfully');
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error creating document. Please try again.');
+      });
+  };
+
+  const handleChooseDocument = () => {
+    fileInputRef.current.click();
+  };
+  const [userData, setUserData] = useState([]);
+
+  // Fetch user data when the component mounts
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const mobileNo = Cookies.get('mobileNo'); // Get the mobile number from the cookie
+      if (!mobileNo) {
+        throw new Error('Mobile number not found in cookie.');
+      }
+      const authToken = Cookies.get('authToken'); // Get the authentication token from the cookie
+
+      // Make a request to your backend API to fetch user data based on the mobile number
+      const response = await fetch(`https://attendance-backend-five.vercel.app/search/${mobileNo}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`, // Include the authentication token
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUserData(data.data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
 
   
   return (
     <div >
-      <Box sx={{ flexGrow: 1, width: 388}}>
-      <AppBar position="static" style={{ backgroundColor: '#424242', height:"70" }}>
+        <Box sx={{ flexGrow: 1, width: 380, backgroundColor: 'black' }}>
+      <AppBar position="static" style={{ backgroundColor: '#424242' }}>
         <Toolbar>
-        <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
+          <a href='userdash' style={{ backgroundColor: '#424242', border: 'none', color: 'white', textDecoration: 'none' }}>
+            <IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              sx={{ mr: 2 }}
+              style={{ color: 'white' }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+          </a>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Khushi Sonani
+            <div>
+              {userData.length !== 0 ? (
+                <div>
+                  <p className='color'>{userData[0].name }'s Documnents</p>
+                </div>
+              ) : (
+                <p>Loading...</p>
+              )}
+            </div>
           </Typography>
-          
         </Toolbar>
       </AppBar>
     </Box>

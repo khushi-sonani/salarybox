@@ -14,7 +14,12 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import { Link } from "react-router-dom"; 
-
+import Grid from '@mui/material/Grid';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
 import "react-datepicker/dist/react-datepicker.css";
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -25,6 +30,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 // import React, { useState, useEffect } from "react";
 function Signup() {
   const [date, setDate] = useState();
+  const [dob, setDob] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
+  const [dojoining, setDojoining] = useState(null);
  
 // Now you can send `formattedDate` to the server
 const { collapseSidebar } = useProSidebar();
@@ -60,7 +68,7 @@ const { collapseSidebar } = useProSidebar();
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/company',formData
+        'https://attendance-backend-five.vercel.app/company',formData
         
       );
 
@@ -81,6 +89,7 @@ const { collapseSidebar } = useProSidebar();
 
       setPostData([PostData, response.data]);
       alert("submitted");
+      console.log(formData)
     } catch (error) {
       console.error(error);
       alert("name is already used, please use a different name");
@@ -110,38 +119,77 @@ const { collapseSidebar } = useProSidebar();
                 <TextField label="Mobile No" name="mobileNo" type="number" size="small" onChange={handleChange}/>
               </div><br/>
               <div>
-                <TextField label="Adrress" name="address" type="text" size="small" onChange={handleChange}/> 
+                <TextField label="Adrress" name="address" type="text" size="small"   style={{ width:'250px'}} multiline
+          maxRows={4} onChange={handleChange}/> 
               </div><br/>
               <div>
-              <LocalizationProvider  dateAdapter={AdapterDayjs}>
-  <DemoContainer  components={['DatePicker']}>
-    <div style={{ width:'300px'}}>
-    <DatePicker label="date of birth"  className="small-textbox" /></div>
-  </DemoContainer>
-</LocalizationProvider>
-              </div><br/>
+    <input
+        type="date"
+        name="dob"
+        style={{ width: '236px', borderRadius: '5px', border: '1px solid grey', height:'28px' }}
+        onChange={handleChange}
+        value="Date of Birth"
+        onFocus={(e) => e.target.value === 'Date of Birth' && (e.target.value = '')}
+        onBlur={(e) => e.target.value === '' && (e.target.value = 'Date of Birth')}
+    />
+</div>
+<br/>
               <div>
                 <TextField label="E-mail" name="email" type="text" size="small" onChange={handleChange} />
               </div><br/>
               <div> 
-                <TextField label="Pancard No" type="number" name="pannumber" ize="small" onChange={handleChange} /> <br />
+                <TextField label="Pancard No" type="number" name="pannumber" size="small" onChange={handleChange} /> <br />
               </div><br/>
               <div>
                 <TextField label="Adhar No" name="adharnumber" size="small" onChange={handleChange} /> <br />
               </div><br/>
               <div>
-                <TextField label="Gender"  name="gender" type="text" size="small" onChange={handleChange}/>
-              </div><br/>
+      <FormControl component="fieldset">
+        <Grid container alignItems="center" style={{ marginLeft:'15px', marginTop:"2px", marginBottom:'0px'}}>
+          <Grid item>
+            <FormLabel id="demo-row-radio-buttons-group-label" style={{ marginRight: '18px' }}>
+              Gender
+            </FormLabel>
+          </Grid>
+          <Grid item>
+            <RadioGroup
+              row
+              aria-labelledby="demo-row-radio-buttons-group-label"
+              name="row-radio-buttons-group"
+              value={formData.gender} // Bind the value to the state
+              onChange={handleChange}
+            >
+              <FormControlLabel
+                value="female"
+                control={<Radio />}
+                label="Female"
+                name=""
+              />
+              <FormControlLabel
+                value="male"
+                control={<Radio />}
+                label="Male"
+              />
+            </RadioGroup>
+          </Grid>
+        </Grid>
+      </FormControl>
+    </div><br/>
               <div>
                 <TextField label="Designation"  name="designation" type="text"size="small" onChange={handleChange}/>
               </div><br/>
               <div>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-  <DemoContainer components={['DatePicker']}>
-    <div  style={{ width:'300px', paddingLeft:'40px'}}>
-    <DatePicker label="date of joining" className="small-textbox" /></div>
-  </DemoContainer>
-</LocalizationProvider>
+         <input type="date" style={{width:'235px', borderRadius:"5px", border:"1px  solid grey",  height:'28px'}}  name="dojoining"  onChange={handleChange}/>
+         </div><br/>
+              <div>
+                 </div><br/>
+              <div>
+                <input
+                  type="file"
+                  name="profile"
+                  onChange={handleChange}
+                  accept="image/*" // Allow only image files
+                />
               </div><br/>
               <div>
                 <TextField label="Password"  name="password" type="password" size="small" onChange={handleChange}/>
@@ -156,6 +204,7 @@ const { collapseSidebar } = useProSidebar();
             </div>
           </div>
         </div>
+        
       </form>
     </div>
       );

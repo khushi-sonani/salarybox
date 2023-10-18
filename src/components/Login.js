@@ -1,63 +1,157 @@
-import react from 'react';
-import ReactDOM,{ useNavigate} from 'react-router-dom';
-import './Login.css'
-import logo from "./img/logo.jpg"
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom';
-import { TextField, colors } from '@mui/material';
-import {Button} from '@mui/material';
-import valiation from './validation';
-
+import React, { useState } from 'react';
+import jwt_decode from 'jwt-decode';
+import './Login.css';
+import logo from './img/logo.jpg';
+import { TextField, Button, CircularProgress, Box } from '@mui/material';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import Backdrop from '@mui/material/Backdrop';
 
 function FormValidation() {
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleName = (e) => {
+    setName(e.target.value);
+  };
+
+  const handlePassword = (e) => {
+    setPassword(e.target.value);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleApi = async () => {
+    try {
+      setLoading(true);
+
+      const response = await axios.post(
+        'https://attendance-backend-five.vercel.app/login',
+        {
+          name: name,
+          password: password,
+        }
+      );
+      const result = response.data;
+
+      if (result.statusCode === 200 && result.token && result.mobileNo) {
+        const { token, mobileNo } = result;
+
+        // Decode the token to get the empid
+        const decodedToken = jwt_decode(token);
+        const empid = decodedToken.empid;
+
+        // Store the token, mobile number, and empid in cookies
+        Cookies.set('authToken', token, { expires: 365 });
+        Cookies.set('mobileNo', mobileNo, { expires: 365 });
+        Cookies.set('empid', empid, { expires: 365 });
+
+        // Delay closing the Backdrop to allow time for the alert to be displayed
+        setTimeout(() => {
+          setLoading(false);
+          handleClose(); // Close the Backdrop
+          alert('Login successful');
+          // You can redirect to '/punchin' or another route here
+          navigate('/punchin');
+        }, 1000); // Adjust the delay time as needed
+      } else {
+        // Delay closing the Backdrop to allow time for the alert to be displayed
+        setTimeout(() => {
+          alert('Login failed. Please check your credentials.');
+          setLoading(false);
+        }, 1000); // Adjust the delay time as needed
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      // Delay closing the Backdrop to allow time for the alert to be displayed
+      setTimeout(() => {
+        alert('User name or password is not correct.');
+        setLoading(false);
+      }, 1000); // Adjust the delay time as needed
+    }
+  };
 
   return (
-<form >
+    <form>
+      <div
+        className="main"
+        style={{
+          filter: loading ? 'blur(1px)' : 'none', // Apply blur effect to the entire component when loading
+        }}
+      >
+        <div className="sub-main">
+          <div>
+            <div className="imgs">
+              <div className="container-img">
+                <img src={logo} alt="logo" className="logo" />
+              </div>
+            </div>
+            <h1 className="h1">Login</h1>
+            <div>
+              <TextField
+                label="Name"
+                name="name"
+                id="outlined-size-small"
+                size="small"
+                value={name}
+                onChange={handleName}
+              />
+            </div>
+            <div className="second-input">
+              <TextField
+                label="Password"
+                name="password"
+                id="outlined-size-small"
+                size="small"
+                value={password}
+                onChange={handlePassword}
+              />
+            </div>
+            <br />
+            <div className="btn">
+              <Box position="relative">
+                <Button
+                  type="button"
+                  style={{ backgroundColor: '#4f5cd7' }}
+                  variant="contained"
+                  size="large"
+                  onClick={handleApi}
+                >
+                  Login
+                </Button>
 
-    <div className='main'>
-    
-      <div className='sub-main'>
-        <div>
-          <div className='imgs'>
-            <div className='container-img'>
-              <img src={logo} alt='logo' className='logo' />
+                {loading && (
+                  <CircularProgress
+                    color="inherit"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)', // Center the loader
+                      color: 'black', // Set the loader color
+                      zIndex: 9999, // Make sure the loader is above other elements
+                    }}
+                  />
+                )}
+              </Box>
+            </div>
+            <br />
+            <div>
+              <a className="xyz" href="Signup">
+                Do not have an account? <b>Sign up</b>
+              </a>
             </div>
           </div>
-          <h1 className='h1'>Login</h1>
-          <div>
-          <TextField label="Name" name='name' id="outlined-size-small" size="small"/>
-        
-          </div >
-
-          <div className="second-input">
-        
-          <TextField label="Password" name='password' id="outlined-size-small" size="small" />
-         
-          </div><br/>
-          <div className="btn">
-            <Link to="/side">
-            <Button  type='Submit' style={{ backgroundColor:'#4f5cd7'}}  variant="contained" size="large" > Login</Button>
-         
-          </Link>
-          </div><br/>
-          <div>
-           <a className='xyz' href="Signup">do not have any account? <b>signu up</b></a>
-          </div>
-          <div>
-          <a href='punchin' className='p'><b>Forgot password </b></a>
-          <a href='attendance' className='p'><b>attendance</b></a><br/>
-          <a href='history' className='p'><b>history</b></a><br/>
-          <a href='side' className='p'><b>sidebar</b></a><br/>
-          <a href='document' className='p'><b>document</b></a>
-          </div>
-         
         </div>
       </div>
-    </div>
     </form>
   );
- 
-  
 }
 
 export default FormValidation;
